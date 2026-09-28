@@ -29,6 +29,8 @@ protected:
 private:
     void initUI();
     void initConnections();
+    void updateLineEditPalette();
+    void updateCursor();
 
 public slots:
     // 切换选择搜索结果时，应用图标发生改变
