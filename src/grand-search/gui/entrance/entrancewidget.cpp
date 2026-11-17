@@ -108,9 +108,12 @@ void EntranceWidgetPrivate::notifyTextChanged()
                             << "Length:" << currentSearchText.length();
     emit q_p->searchTextChanged(currentSearchText);
 
-    // 搜索内容改变后，清空图标显示
-    MatchedItem item;
-    q_p->onAppIconChanged(QString(), item);
+    // 搜索内容改变后，仅在文本为空时清空图标显示
+    // 文本非空时由搜索结果回调（sigCurrentItemChanged → onAppIconChanged）自然更新
+    if (currentSearchText.isEmpty()) {
+        MatchedItem item;
+        q_p->onAppIconChanged(QString(), item);
+    }
 }
 
 void EntranceWidgetPrivate::showMenu(const QPoint &pos)
@@ -388,7 +391,16 @@ void EntranceWidget::updateCursor()
     d_p->m_cursor->setColor(color);
 
     QRect rect = d_p->m_lineEdit->inputMethodQuery(Qt::ImCursorRectangle).toRect();
+    // DSearchEdit 的搜索图标覆盖在 QLineEdit 左侧（leading action），当布局尚未
+    // 完成或文本为空时 ImCursorRectangle.x() 可能返回 0，导致自绘光标落在图标
+    // 内部。确保光标起始位置在搜索图标（SearchIconSize）右侧。
+    int minCursorX = SearchIconSize + 5;
+    // ImCursorRectangle.x() 返回 advance width 边界，CJK 及部分字符字形可能超出
+    // advance width（glyph bearing/overhang），需右移偏移量使光标位于最后一个
+    // 字符字形的右侧。
     rect.setX(rect.x() + 5);
+    if (rect.x() < minCursorX)
+        rect.setX(minCursorX);
     rect.setWidth(1);
     rect.setHeight(rect.height() - 1);
     d_p->m_cursor->setGeometry(rect);
