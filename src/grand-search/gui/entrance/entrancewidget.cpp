@@ -20,6 +20,7 @@
 #include <QHBoxLayout>
 #include <QWidgetAction>
 #include <QAction>
+#include <QToolButton>
 #include <QTimer>
 #include <QProxyStyle>
 #include <QGuiApplication>
@@ -43,7 +44,7 @@ static const uint WidgetMargins = 10;   // 界面边距
 static const uint SearchMaxLength = 512;   // 输入最大字符限制
 
 static const uint LabelIconSize = 26;   // 标签应用图标显示大小
-static const uint LabelSize = 32;   // 标签大小
+static const uint LabelSize = 26;   // 标签大小
 static const uint SearchIconSize = 28;   // 搜索框放大镜图标尺寸（DTK 默认 20，偏小导致视觉差异）
 
 static const QString kSearchIconPath = QStringLiteral(":/icons/search_icon.svg");
@@ -284,7 +285,14 @@ void EntranceWidget::initUI()
     d_p->m_appIconLabel->setFixedSize(LabelSize, LabelSize);
 
     d_p->m_appIconAction = new QAction(this);
+    const auto existingButtons = d_p->m_lineEdit->findChildren<QToolButton *>();
     d_p->m_lineEdit->addAction(d_p->m_appIconAction, QLineEdit::TrailingPosition);
+    for (auto *btn : d_p->m_lineEdit->findChildren<QToolButton *>()) {
+        if (!existingButtons.contains(btn)) {
+            btn->setFixedWidth(2);
+            break;
+        }
+    }
     d_p->m_searchEdit->setRightWidgets(QList<QWidget *>() << d_p->m_appIconLabel);
 
     // 搜索框界面布局设置
